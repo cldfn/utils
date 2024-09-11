@@ -31,7 +31,7 @@ func (opt Result[T]) Unwrap() T {
 	return *opt.val
 }
 
-func (opt Result[T]) UnwrapToClassic() (*T, error) {
+func (opt Result[T]) UnwrapClassic() (*T, error) {
 	return opt.val, opt.err
 }
 
@@ -69,7 +69,19 @@ func (opt Result[T]) Accept(f func(*T)) (nextResult Result[T]) {
 	return opt
 }
 
-func (opt Result[T]) Then(f func(*T) *Result[T]) Result[T] {
+func (opt Result[T]) Success(f func()) (nextResult Result[T]) {
+	if opt.IsOk() {
+		f()
+	}
+	return
+}
+
+func (opt Result[T]) Then(f func(*T) *Result[T]) (nextResult Result[T]) {
+
+	defer RecoverPanic(func(pe *PanicError) {
+		nextResult.SetFail(pe)
+	})
+
 	if opt.IsOk() {
 		result := f(opt.val)
 		if result != nil {
@@ -103,6 +115,14 @@ func ResultOk[T any](v T) Result[T] {
 	res.SetOk(v)
 
 	return res
+}
+
+func ToResult(err error) Result[any] {
+	if err != nil {
+		return ResultFailed[any](err)
+	} else {
+		return ResultOk[any](nil)
+	}
 }
 
 func ResultFailed[T any](err error) Result[T] {
