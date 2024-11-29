@@ -110,7 +110,7 @@ func RecoverPanic(onPanic func(pe *PanicError)) {
 func RecoverPanicToLog() {
 	RecoverPanic(func(pe *PanicError) {
 		log.Printf("recovered  : %s", pe.Error())
-		pe.FormatStack()
+		log.Println(pe.FormatStack())
 	})
 }
 
@@ -133,7 +133,7 @@ func WrapPanic(cb func()) func() {
 	return func() {
 		defer RecoverPanic(func(pe *PanicError) {
 			log.Printf("safe goroutine paniced: %s", pe.Error())
-			pe.FormatStack()
+			log.Println(pe.FormatStack())
 		})
 
 		cb()
@@ -147,7 +147,7 @@ func SafeGoroutineWithCb(cb func(), onPanic func(pe *PanicError)) {
 				onPanic(pe)
 			} else {
 				log.Printf("safe goroutine paniced: %s", pe.Error())
-				pe.FormatStack()
+				log.Println(pe.FormatStack())
 			}
 		})
 
